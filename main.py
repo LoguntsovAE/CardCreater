@@ -14,46 +14,40 @@ class Application(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent, background='gray')   
         self.parent = parent
-        self.set_window()
-        self.set_fields()
+        self.configurate_window()
+        self.create_fields()
         # Фрейм с готовыми сотрудникми
-        self.users = []
-        self.frame = ListFrame(self.parent, self.users)
-        self.frame.grid(column=0, row=14)
+        self.create_frame_with_cards()
 
-    def set_window(self):
+    def configurate_window(self):
         self.parent.title('Создание пропусков сотрудников')
-        self.parent.geometry('+300+300')
+        self.parent.geometry('800x800+300+300')
         self.parent.iconbitmap('logo.ico')
     
-    def set_fields(self, surname=None):
-        lbl = Label(self.parent, text='Фамилия')
-        # state = active - можно установить состояние поля
-        lbl.grid(column=0, row=0)
-        # Устаналиваем поле ввода
-        self.surname = Entry(self.parent)
-        self.surname.grid(column=0, row=1)
+    def create_fields(self, surname=None):
+        Label(self.parent, text='Фамилия').grid(column=0, row=0)
+        self.surname = Entry(self.parent, width=40).grid(columnspan=2, row=1)
         if surname:
             self.surname.insert(0, surname)
 
-        # Просто текст
-        lbl = Label(self.parent, text='Имя')
-        lbl.grid(column=0, row=2)
-        # Устаналиваем поле ввода
-        self.name = Entry(self.parent)  
-        self.name.grid(column=0, row=3)
+        # Имя
+        Label(self.parent, text='Имя').grid(column=0, row=2)
+        self.name = Entry(self.parent).grid(column=0, row=3)
+
+        # Отчество
+        Label(self.parent, text='Отчество').grid(column=1, row=2)
+        self.midlename = Entry(self.parent).grid(column=1, row=3)
+
+        # Компания
+        Label(self.parent, text='Компания').grid(column=0, row=4)
+        self.company = Entry(self.parent).grid(column=0, row=5)
+
+        # Должность
+        Label(self.parent, text='Должность').grid(column=0, row=6)
+        self.midlename = Entry(self.parent).grid(column=0, row=7)
 
         # Просто текст
-        lbl = Label(self.parent, text='Отчество')
-        lbl.grid(column=0, row=4)
-        # Устаналиваем поле ввода
-        self.midlename = Entry(self.parent)  
-        self.midlename.grid(column=0, row=5)
-
-        # Просто текст
-        lbl = Label(self.parent, text='Тип пропуска')
-        lbl.grid(column=0, row=6)
-        # Устаналиваем поле ввода
+        Label(self.parent, text='Тип пропуска').grid(column=0, row=8)
         self.card_type = Combobox(self.parent)
         self.card_type.grid(column=0, row=7) 
         self.card_type['values'] = CARDS_TYPES
@@ -67,7 +61,7 @@ class Application(Frame):
         # ПЕРЕДЕЛАТЬ. НУЛИ И ДЕИНИЦЫ НЕ ПРАВИЛЬНО РАБОТАЮТ
         self.access = 0
         self.access = Checkbutton(self.parent, text='Выбрать', var=self.access, command = self.on_check)
-        self.access.grid(column=0, row=8)
+        self.access.grid(column=0, row=9)
 
         # Загрузка файла
         btn = Button(self.parent, text='Загрузите фотографию', command=self.load_photo)
@@ -88,6 +82,12 @@ class Application(Frame):
         # Удалить одного из готовых
         btn = Button(self.parent, text='Изменить', command=self.patch)
         btn.grid(column=0, row=13)
+
+    def create_frame_with_cards(self):
+        self.users = []
+        self.frame = ListFrame(self.parent, self.users)
+        self.frame.grid(column=0, row=14)
+
 
     def create_card(self):
         card = Card(
