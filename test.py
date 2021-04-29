@@ -1,55 +1,28 @@
+from tkinter import *
+from PIL import ImageTk, Image
+from tkinter import filedialog
+import os
 
-import tkinter as tk
+root = Tk()
+# root.geometry("700x600+1400+300")
+# root.resizable(width=True, height=True)
+CURRENT_DIRECTORY = os.path.dirname(__file__)
 
-class ListFrame(tk.Frame):
-    def __init__(self, master, items=[]):
-        super().__init__(master)
-        self.list = tk.Listbox(self)
-        self.scroll = tk.Scrollbar(self, orient=tk.VERTICAL,
-                                   command=self.list.yview)
-        self.list.config(yscrollcommand=self.scroll.set)
-        self.list.insert(0, *items)
-        self.list.pack(side=tk.LEFT)
-        self.scroll.pack(side=tk.LEFT, fill=tk.Y)
+def open_img(event, picture):
+    file = filedialog.askopenfilename(
+        initialdir=CURRENT_DIRECTORY + r'\photo',
+        title='Hello, title',
+        filetypes=(('JPG File', '*.jpg'), ('PNG File', '*.png'), ('All Files', '*.*'))
+    )
+    img = Image.open(file)
+    img.thumbnail((74,96))
+    photo = ImageTk.PhotoImage(img)
+    picture.configure(text=None, image=photo, width=74, height=96, background='red')
+    picture.image = photo
+    
 
-    def pop_selection(self):
-        index = self.list.curselection()
-        if index:
-            value = self.list.get(index)
-            self.list.delete(index)
-            return value
+picture = Label(text="Добавить фото", image=None, width=30, height=40, borderwidth=7, relief="groove")
+picture.bind('<Double-Button-1>', lambda event: open_img(event, picture))
 
-    def insert_item(self, item):
-        self.list.insert(tk.END, item)
-
-class App(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        months = ["Январь", "Февраль", "Март", "Апрель",
-                  "Май", "Июнь", "Июль", "Август", "Сентябрь",
-                  "Октябрь", "Ноябрь", "Декабрь"]
-        self.frame_a = ListFrame(self, months)
-        self.frame_b = ListFrame(self)
-        self.btn_right = tk.Button(self, text=">",
-                                   command=self.move_right)
-        self.btn_left = tk.Button(self, text="<",
-                                  command=self.move_left)
-
-        self.frame_a.pack(side=tk.LEFT, padx=10, pady=10)
-        self.frame_b.pack(side=tk.RIGHT, padx=10, pady=10)
-        self.btn_right.pack(expand=True, ipadx=5)
-        self.btn_left.pack(expand=True, ipadx=5)
-
-    def move_right(self):
-        self.move(self.frame_a, self.frame_b)
-    def move_left(self):
-        self.move(self.frame_b, self.frame_a)
-
-    def move(self, frame_from, frame_to):
-        value = frame_from.pop_selection()
-        if value:
-            frame_to.insert_item(value)
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+picture.pack()
+root.mainloop()

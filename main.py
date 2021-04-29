@@ -1,136 +1,195 @@
-from tkinter import Tk, Frame, BOTH, Label, Entry
-from tkinter.ttk import Combobox
+from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from tkinter import BooleanVar, Label, Entry, Checkbutton, Button, Tk, StringVar
-import os
+from tkcalendar import DateEntry
+from datetime import date
 from work_window import ListFrame, Card
+import os
+from main_window_settings import main_window_settings
 
 
+CURRENT_DATE = date.today().strftime('%d.%m.%Y')
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 CARDS_TYPES = ('Постоянный', 'Временный')
- 
-class Application(Frame):
-    def __init__(self, parent):
-        Frame.__init__(self, parent, background='gray')   
-        self.parent = parent
-        self.configurate_window()
-        self.create_fields()
-        # Фрейм с готовыми сотрудникми
-        self.create_frame_with_cards()
 
-    def configurate_window(self):
-        self.parent.title('Создание пропусков сотрудников')
-        self.parent.geometry('800x800+300+300')
-        self.parent.iconbitmap('logo.ico')
-    
-    def create_fields(self, surname=None):
-        Label(self.parent, text='Фамилия').grid(column=0, row=0)
-        self.surname = Entry(self.parent, width=40).grid(columnspan=2, row=1)
-        if surname:
+class Application(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master = master
+        self.pack()
+
+        self.frame_fields = tk.Frame(master=master, relief=tk.SUNKEN, borderwidth=5, background='gray')
+        self.frame_fields.pack()
+        main_title_1 = tk.Label(master=self.frame_fields, text='Создание карты сотрудника', background='gray')
+        main_title_1.pack(side=tk.TOP)
+        self.create_widgets_fields(frame=self.frame_fields)
+
+        self.frame_cards = tk.Frame(relief=tk.GROOVE, borderwidth=5, background='blue')
+        self.frame_cards.pack()
+        main_title_2 = tk.Label(master=self.frame_cards, text='Просмотр и редактирование')
+        main_title_2.pack(side=tk.TOP)
+        # self.create_widgets(self.frame_fields)
+
+
+    def create_widgets_fields(self, frame,
+        surname=None, name=None, midlename=None,
+        company=None, position=None, card_type=None,
+        date=None, special_access=None, number=None
+    ):
+        
+        ### SURNAME
+        srn = tk.Label(master=self.frame_fields, text='Фамилия', background='white')
+        srn.pack()
+        self.surname = tk.Entry(self.frame_fields, width=40)
+        self.surname.pack()
+        if surname is not None:
             self.surname.insert(0, surname)
+        ###
 
-        # Имя
-        Label(self.parent, text='Имя').grid(column=0, row=2)
-        self.name = Entry(self.parent).grid(column=0, row=3)
+        ### NAME
+        nme = tk.Label(master=self.frame_fields, text='Имя', background='white')
+        nme.pack()
+        self.name = tk.Entry(self.frame_fields, width=40)
+        self.name.pack()
+        if name is not None:
+            self.name.insert(0, name)
+        ###
 
-        # Отчество
-        Label(self.parent, text='Отчество').grid(column=1, row=2)
-        self.midlename = Entry(self.parent).grid(column=1, row=3)
+        ### MIDLENAME
+        midnme = tk.Label(master=self.frame_fields, text='Имя', background='white')
+        midnme.pack()
+        self.midlename = tk.Entry(self.frame_fields, width=40)
+        self.midlename.pack()
+        if midlename is not None:
+            self.midlename.insert(0, midlename)
+        ###
 
-        # Компания
-        Label(self.parent, text='Компания').grid(column=0, row=4)
-        self.company = Entry(self.parent).grid(column=0, row=5)
+        ### COMPANY
+        cmp = tk.Label(master=self.frame_fields, text='Компания', background='white')
+        cmp.pack()
+        self.company = tk.Entry(self.frame_fields, width=40)
+        self.company.pack()
+        if company is not None:
+            self.company.insert(0, company)
+        ###
 
-        # Должность
-        Label(self.parent, text='Должность').grid(column=0, row=6)
-        self.midlename = Entry(self.parent).grid(column=0, row=7)
+        ### POSITON
+        pst = tk.Label(master=self.frame_fields, text='Должность', background='white')
+        pst.pack()
+        self.position = tk.Entry(self.frame_fields, width=40)
+        self.position.pack()
+        if position is not None:
+            self.position.insert(0, position)
+        ###
 
-        # Просто текст
-        Label(self.parent, text='Тип пропуска').grid(column=0, row=8)
-        self.card_type = Combobox(self.parent)
-        self.card_type.grid(column=0, row=7) 
+        ### CARD_TYPE
+        ct = tk.Label(master=self.frame_fields, text='Тип пропуска', background='white')
+        ct.pack()
+        self.card_type = tk.ttk.Combobox(self.frame_fields)
+        self.card_type.pack()
         self.card_type['values'] = CARDS_TYPES
-        # Предустановленное значение поля
-        # self.card_type.current(0)
-        """ 
-        Чтобы получить элемент select, вы можете использовать функцию get
-        вот таким образом: combo.get()
-        """
+        if card_type is not None:
+            self.card_type.insert(0, card_type)
+        ###
 
-        # ПЕРЕДЕЛАТЬ. НУЛИ И ДЕИНИЦЫ НЕ ПРАВИЛЬНО РАБОТАЮТ
-        self.access = 0
-        self.access = Checkbutton(self.parent, text='Выбрать', var=self.access, command = self.on_check)
-        self.access.grid(column=0, row=9)
-
-        # Загрузка файла
-        btn = Button(self.parent, text='Загрузите фотографию', command=self.load_photo)
-        btn.grid(column=0, row=9)
-
-        # Добавление сотрудника в список
-        btn = Button(self.parent, text='Добавить', command=self.create_card)
-        btn.grid(column=0, row=10)
-
-        # Закончить создание
-        btn = Button(self.parent, text='Сгенерировать', command=self.pdf_creater)
-        btn.grid(column=0, row=11)
-
-        # Удалить одного из готовых
-        btn = Button(self.parent, text='Удалить', command=self.delete_user)
-        btn.grid(column=0, row=12)
-
-        # Удалить одного из готовых
-        btn = Button(self.parent, text='Изменить', command=self.patch)
-        btn.grid(column=0, row=13)
-
-    def create_frame_with_cards(self):
-        self.users = []
-        self.frame = ListFrame(self.parent, self.users)
-        self.frame.grid(column=0, row=14)
-
-
-    def create_card(self):
-        card = Card(
-            self.surname.get(),
-            self.name.get(),
-            self.midlename.get(),
-            self.card_type.get(),
-            self.access
-        )
-        print(card)
-        value = str(self.surname.get())
-        if value:
-            self.frame.insert_item(value)
-
-    def on_check(self):
-        if self.access == 0:
-            self.access = 1
+        ### SPECIAL_ACCESS
+        access = tk.Checkbutton(self.frame_fields, text='Доступ на грузовой двор')
+        access['command'] = self.on_check
+        if special_access is not None:
+            self.access = special_access
         else:
             self.access = 0
+        access.pack()
+        ###
 
-    def load_photo(self):
-        filedialog.askopenfilename(initialdir=CURRENT_DIRECTORY + r'\photo')
-    
-    def patch(self):
-        patch_card = self.frame.curselection()
-        self.set_fields(surname=patch_card)
-    
-    def delete_user(self):
-        return self.frame.pop_selection()
+        ### FINISH_DAY
+        fd = tk.Label(master=self.frame_fields, text='Дата окончания', background='white')
+        fd.pack()
+        self.date = DateEntry(master=self.frame_fields, background='darkblue',
+        foreground='white', borderwidth=2,
+        )
+        self.date.pack()
+        ###
 
-    # Функция, которая будет создавать pdf файл
-    def pdf_creater(self):
-        if self.frame.is_empty():
-            message = 'Сначала сделай работу!'
+        ### NUMBER
+        ct = tk.Label(master=self.frame_fields, text='Номер', background='white')
+        ct.pack()
+        self.number = tk.Entry(self.frame_fields, width=40)
+        self.number.pack()
+        if number is not None:
+            self.number.insert(0, number)
+        ###
+
+        ### PHOTO
+        picture = tk.Label(master=self.frame_fields, text="Добавить фото", image=None, width=12, height=9, borderwidth=7, relief="groove")
+        picture.bind('<Double-Button-1>', lambda event: self.open_img(event, picture))
+        picture.pack()
+        ###
+
+        btn = tk.Button(
+            self.frame_fields,
+            text='Создать',
+            command = lambda: self.create_card(
+                self.surname.get(),
+                self.name.get(),
+                self.midlename.get(),
+                self.company.get(),
+                self.position.get(),
+                self.card_type.get(),
+                self.access,
+                self.date.get(),
+                self.number.get(),
+            )
+        )
+        btn.pack()
+
+    def on_check(self):
+        if self.access == 1:
+            self.access = 0
         else:
-             message = 'Можешь пойти покушать'
-        return messagebox.showinfo(title='Ты справился!', message=message)
+            self.access = 1
+        return self.access
 
-def main():
-    root = Tk()
-    app = Application(root)
-    root.mainloop()  
+    def open_img(self, event, picture):
+        try:
+            file = filedialog.askopenfilename(
+                initialdir=CURRENT_DIRECTORY + r'\photo',
+                title='Выбирете фотографию сотрудника',
+                filetypes=(('JPG File', '*.jpg'), ('PNG File', '*.png'), ('All Files', '*.*'))
+            )
+            img = Image.open(file)
+            img.thumbnail((81,108))
+            photo = ImageTk.PhotoImage(img)
+            picture.configure(image=photo, width=81, height=108, background='red')
+            picture.image = self.photo = photo
+            print(self.photo)
+        except:
+            messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :( ЛОШАРА!!!')
+        messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :( ЛОШАРА!!!')
+
+
+    def create_card(self, surname, name, midlename, company, position, card_type, access, date, number):
+        print(f'Hi {surname}\n{name}\n{midlename}\n{company}\n{position}\n{card_type}\n{access}\n{date}\n{number}')
+    # , name, midlename, company, position, card_type,
+    #     date, special_access, number
+    #     pass
+
+    def create_widgets(self, frame):
+        self.hi_there = tk.Button(self)
+        self.hi_there["text"] = "Hello World\n(click me)"
+        self.hi_there["command"] = self.say_hi
+        self.hi_there.pack(side="top")
+
+        self.quit = tk.Button(self, text="QUIT", fg="red",
+                              command=self.master.destroy)
+        self.quit.pack(side="bottom")
+
+    def say_hi(self):
+        print("hi there, everyone!")
 
 
 if __name__ == '__main__':
-    main()
+    root = tk.Tk()
+    main_window_settings(root)
+    app = Application(root)
+    root.mainloop()
