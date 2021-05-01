@@ -2,13 +2,14 @@ from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date, timedelta
 from work_window import ListFrame, Card
 import os
 from main_window_settings import main_window_settings
 
 
-CURRENT_DATE = date.today().strftime('%d.%m.%Y')
+CURRENT_DATE = date.today()
+FUTURE_DATE = (date.today() + timedelta(days=11)).strftime('%d.%m.%Y')
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 CARDS_TYPES = ('Постоянный', 'Временный')
 
@@ -30,6 +31,8 @@ class Application(tk.Frame):
         main_title_2.pack(side=tk.TOP)
         # self.create_widgets(self.frame_fields)
 
+        # Объявляем пустой список с готовыми карточками
+        self.cards = []
 
     def create_widgets_fields(self, frame,
         surname=None, name=None, midlename=None,
@@ -106,8 +109,9 @@ class Application(tk.Frame):
         fd = tk.Label(master=self.frame_fields, text='Дата окончания', background='white')
         fd.pack()
         self.date = DateEntry(master=self.frame_fields, background='darkblue',
-        foreground='white', borderwidth=2,
+        foreground='white', borderwidth=2, textvariable='12.12.12'
         )
+        self.date.set_date(FUTURE_DATE)
         self.date.pack()
         ###
 
@@ -121,29 +125,31 @@ class Application(tk.Frame):
         ###
 
         ### PHOTO
-        picture = tk.Label(master=self.frame_fields, text="Добавить фото", image=None, width=12, height=9, borderwidth=7, relief="groove")
+        picture = tk.Label(master=self.frame_fields, text="Добавить фото", image=None, width=12, height=9, borderwidth=1, relief="groove")
         picture.bind('<Double-Button-1>', lambda event: self.open_img(event, picture))
         picture.pack()
         ###
-
+        
         btn = tk.Button(
             self.frame_fields,
             text='Создать',
+            # Здесь нужно перехватить исключение вызова функции
             command = lambda: self.create_card(
-                self.surname.get(),
-                self.name.get(),
-                self.midlename.get(),
-                self.company.get(),
-                self.position.get(),
-                self.card_type.get(),
-                self.access,
-                self.date.get(),
-                self.number.get(),
-            )
+                    surname=self.surname.get(),
+                    name=self.name.get(),
+                    midlename=self.midlename.get(),
+                    company=self.company.get(),
+                    position=self.position.get(),
+                    card_type=self.card_type.get(),
+                    access=self.access,
+                    date=self.date.get(),
+                    number=self.number.get(),
+                    photo=self.photo,
+                )
         )
         btn.pack()
 
-    def on_check(self):
+    def on_check(self, event):
         if self.access == 1:
             self.access = 0
         else:
@@ -162,17 +168,42 @@ class Application(tk.Frame):
             photo = ImageTk.PhotoImage(img)
             picture.configure(image=photo, width=81, height=108, background='red')
             picture.image = self.photo = photo
-            print(self.photo)
-        except:
-            messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :( ЛОШАРА!!!')
-        messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :( ЛОШАРА!!!')
+        except Exception as e:
+            print(e)
+            messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :(')
+        try:
+            file_name = os.path.basename(file).split()
+            self.surname.insert(0, file_name[0])
+            self.name.insert(0, file_name[1])
+            # Список слов, которые должны быть удалены из автовставки
+            for_deliting = ['.jpg']
+            midlename = file_name[2]
+            for words in for_deliting:
+                midlename = midlename.replace(words, '')
+            self.midlename.insert(0, midlename)
+        except Exception:
+            messagebox.showerror('Ошибка автозаполнения', 'Введите ФИО ручками')
+        
 
-
-    def create_card(self, surname, name, midlename, company, position, card_type, access, date, number):
-        print(f'Hi {surname}\n{name}\n{midlename}\n{company}\n{position}\n{card_type}\n{access}\n{date}\n{number}')
-    # , name, midlename, company, position, card_type,
-    #     date, special_access, number
-    #     pass
+    def create_card(self, surname, name, midlename, company, position, card_type, access, date, number, photo):
+        try:
+            card = Card(surname, name, midlename, company, position, card_type, access, date, number, photo)
+            messagebox.showinfo('Карточка создана', 'Можно покушоть')
+            # self.surname = surname
+            # self.name = name
+            # self.midlename = midlename
+            # self.company = company
+            # self.position = position
+            # self.card_type = card_type
+            # self.access = access
+            # self.date = date
+            # self.number = number
+            # self.photo = photo
+        except Exception as e:
+            print(e)
+            messagebox.showerror('Ошибка создания', 'Неудалось создать карточку. Начните сначала')
+        # хотел сделать предпросмотр, пока не получается
+        # card.show()
 
     def create_widgets(self, frame):
         self.hi_there = tk.Button(self)
