@@ -1,11 +1,11 @@
 import tkinter as tk
 import os
-from PIL import Image
+from PIL import Image, ImageTk
 
 
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 
-
+"""
 class ListFrame(tk.Frame):
     def __init__(self, master, items=[]):
         super().__init__(master)
@@ -36,6 +36,7 @@ class ListFrame(tk.Frame):
     def is_empty(self):
         return len(self.list.get(0)) == 0
 
+"""
 
 class Card:
     def __init__(self, surname, name,
@@ -57,22 +58,25 @@ class Card:
 
 
     def __str__(self):
-        return  self.surname + ' ' + self.name + ' ' + self.midlename + ' ' + self.card_type + ' Тип: ' + str(self.chk_state)
+        return  self.surname + ' ' + self.name + ' ' + self.midlename + ' ' + self.company + ' ' + self.position + ' ' + self.card_type + ' Тип: ' + str(self.access)
 
     def show(self):
-        root = tk.Tk()        
-        label = tk.Label(root, text=self.surname)
-        # label.image = photo
-        label.pack()
-        root.mainloop()
+        pass
 
     def create_card_image(self):
-        temp = Image.open(r'template\template_main.png')
-        image_labe = self.photo.paste(temp)
-        root = tk.Tk()        
-        label = tk.Label(root, image=image_labe)
-        label.image = image_labe
-        label.pack()
-        root.mainloop()
+        rootA = tk.Toplevel()
+        # rootA = tk.Tk()
+        rootA.title('Предварительный просмотр карты')
 
-        temp.close()
+        temp = Image.open(r'template\template_main.jpg')
+        # size = temp.size()
+        template = ImageTk.PhotoImage(temp)
+
+        text = [self.surname, self.midlename, self.company, self.position, self.card_type, self.date, self.number]
+        text = self.surname
+        pre_show_card = tk.Label(rootA, image=template, text=text, width=81, height=109)
+        pre_show_card.image = template
+        pre_show_card.pack()
+
+        # rootA.grab_set()
+        # rootA.mainloop()

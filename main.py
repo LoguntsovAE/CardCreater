@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
-from work_window import ListFrame, Card
+from work_window import Card
 import os
 from main_window_settings import main_window_settings
 
@@ -19,6 +19,9 @@ class Application(tk.Frame):
         self.master = master
         self.pack()
 
+        # Объявляем пустой список с готовыми карточками
+        self.cards = []
+
         self.frame_fields = tk.Frame(master=master, relief=tk.SUNKEN, borderwidth=5, background='gray')
         self.frame_fields.pack()
         main_title_1 = tk.Label(master=self.frame_fields, text='Создание карты сотрудника', background='gray')
@@ -29,16 +32,13 @@ class Application(tk.Frame):
         self.frame_cards.pack()
         main_title_2 = tk.Label(master=self.frame_cards, text='Просмотр и редактирование')
         main_title_2.pack(side=tk.TOP)
-        # self.create_widgets(self.frame_fields)
+        self.create_widgets(self.frame_cards)
 
-        # Объявляем пустой список с готовыми карточками
-        self.cards = []
 
     def create_widgets_fields(self, frame,
         surname=None, name=None, midlename=None,
         company=None, position=None, card_type=None,
-        date=None, special_access=None, number=None
-    ):
+        date=None, special_access=None, number=None):
         
         ### SURNAME
         srn = tk.Label(master=self.frame_fields, text='Фамилия', background='white')
@@ -96,8 +96,7 @@ class Application(tk.Frame):
         ###
 
         ### SPECIAL_ACCESS
-        access = tk.Checkbutton(self.frame_fields, text='Доступ на грузовой двор')
-        access['command'] = self.on_check
+        access = tk.Checkbutton(self.frame_fields, text='Доступ на грузовой двор', command = self.on_check)
         if special_access is not None:
             self.access = special_access
         else:
@@ -149,22 +148,25 @@ class Application(tk.Frame):
         )
         btn.pack()
 
-    def on_check(self, event):
+
+    def on_check(self):
         if self.access == 1:
             self.access = 0
         else:
             self.access = 1
         return self.access
 
+
     def open_img(self, event, picture):
         try:
-            file = filedialog.askopenfilename(
+            self.file_name = filedialog.askopenfilename(
                 initialdir=CURRENT_DIRECTORY + r'\photo',
                 title='Выбирете фотографию сотрудника',
                 filetypes=(('JPG File', '*.jpg'), ('PNG File', '*.png'), ('All Files', '*.*'))
             )
-            img = Image.open(file)
+            img = Image.open(self.file_name)
             img.thumbnail((81,108))
+            # img = img.resize((100, 100), Image.ANTIALIAS)
             photo = ImageTk.PhotoImage(img)
             picture.configure(image=photo, width=81, height=108, background='red')
             picture.image = self.photo = photo
@@ -172,23 +174,26 @@ class Application(tk.Frame):
             print(e)
             messagebox.showerror('Ошибка загрузки', 'Картинка не загрузилась :(')
         try:
-            file_name = os.path.basename(file).split()
-            self.surname.insert(0, file_name[0])
-            self.name.insert(0, file_name[1])
+            file_name = os.path.basename(self.file_name).split()
+            if self.surname.get() == '':
+                self.surname.insert(0, file_name[0])
+            if self.name.get() == '':
+                self.name.insert(0, file_name[1])
             # Список слов, которые должны быть удалены из автовставки
             for_deliting = ['.jpg']
             midlename = file_name[2]
-            for words in for_deliting:
-                midlename = midlename.replace(words, '')
+            for word in for_deliting:
+                midlename = midlename.replace(word, '')
             self.midlename.insert(0, midlename)
-        except Exception:
+        except Exception as e:
+            print(e)
             messagebox.showerror('Ошибка автозаполнения', 'Введите ФИО ручками')
         
 
     def create_card(self, surname, name, midlename, company, position, card_type, access, date, number, photo):
         try:
             card = Card(surname, name, midlename, company, position, card_type, access, date, number, photo)
-            messagebox.showinfo('Карточка создана', 'Можно покушоть')
+            self.card.append(card)
             # self.surname = surname
             # self.name = name
             # self.midlename = midlename
@@ -206,17 +211,8 @@ class Application(tk.Frame):
         # card.show()
 
     def create_widgets(self, frame):
-        self.hi_there = tk.Button(self)
-        self.hi_there["text"] = "Hello World\n(click me)"
-        self.hi_there["command"] = self.say_hi
-        self.hi_there.pack(side="top")
-
-        self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.master.destroy)
-        self.quit.pack(side="bottom")
-
-    def say_hi(self):
-        print("hi there, everyone!")
+        main_title_1 = tk.Label(master=self.frame_fields, text=self.cards, background='gray')
+        main_title_1.pack()
 
 
 if __name__ == '__main__':
